@@ -52,16 +52,16 @@ blockquote {
    inset margin. A fixed height (not the header widget's own inline
    min-height -- see the .tb-header-inner override below) keeps this
    predictable regardless of what a blog's own layout carries over on
-   theme re-import. The banner image itself is extended well past its
-   own original width (see static/img/banner.jpg's own build notes) so
-   `cover` -- which always trims from the top first, to keep the bottom
-   fully visible -- has enough width to draw from before it would ever
-   need to crop into the subject's head, up to a realistic ~1920px-wide
-   screen. */
+   theme re-import. The banner image is a seamlessly tileable strip
+   (repeats the same scene) -- repeat-x at a fixed scaled height means
+   it always fills the full width at any screen size with no cropping
+   into the subject at all, unlike `cover`, which has to crop something
+   once the container's own aspect ratio doesn't match the photo's. */
 .area-header {
   position: relative;
   height: 250px;
-  background: #000 url("../img/banner.jpg") center bottom / cover no-repeat;
+  background: #000 url("../img/banner.jpg") repeat-x left bottom;
+  background-size: auto 250px;
 }
 
 /* Neutralize the generic widget-card padding/margin (tb-widget) that
@@ -77,7 +77,10 @@ blockquote {
   /* Pinned to the bottom of .area-header regardless of the widget's own
      configured height (min-height, overridden below) -- so the title
      always sits on the image's own dark lower half instead of
-     wherever a taller box would otherwise center it. */
+     wherever a taller box would otherwise center it. Sized (with the
+     title/tagline below) to stay within the bottom 40% of the 250px
+     header even in the worst case: a long title wrapped onto two
+     lines. */
   position: absolute;
   left: 0;
   right: 0;
@@ -85,13 +88,13 @@ blockquote {
   min-height: 0 !important;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 1.25rem 1.5rem;
+  padding: 0 1.25rem 0.5rem;
   color: #fff;
 }
 
 .area-header h1 {
   margin: 0;
-  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.01em;
@@ -99,8 +102,9 @@ blockquote {
 }
 
 .area-header .tb-tagline {
-  margin: 0.1rem 0 0;
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  margin: 0.05rem 0 0;
+  line-height: 1.2;
+  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
   color: #fff;
   font-weight: 400;
 }
@@ -318,6 +322,6 @@ blockquote {
 /* Keep the shared engine's own 768px breakpoint (see SPEC.md "Keep your
    own narrow-screen breakpoint... at exactly 768px"). */
 @media (max-width: 768px) {
-  .area-header .tb-header-inner { padding: 1.25rem 1rem 1.5rem; }
+  .area-header .tb-header-inner { padding: 0 1rem 0.5rem; }
   .tb-page-matrix { flex-direction: column; }
 }
