@@ -48,15 +48,28 @@ blockquote {
 
 /* ---------------------------------------------------------- header --- */
 
+/* Capped rather than edge-to-edge: on a genuinely wide monitor, a
+   full-bleed short banner forces `cover` to crop hard into the subject
+   (the wider the viewport, the more it crops from the top). Capping the
+   width keeps the crop modest at any screen, and reads as a framed
+   "card" consistent with the rest of the site's rounded panels. */
+.area-header-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 0;
+}
+
 .area-header {
   position: relative;
+  border-radius: 14px;
+  overflow: hidden;
   /* The image itself already carries a solid black band across its own
      bottom (cropped/extended before upload) for the title to sit on --
      "center bottom" keeps that band anchored to the visible bottom edge
      at any viewport width, and the plain #000 fallback matches it
      seamlessly if `cover` ever needs to show past the image itself. */
   background: #000 url("../img/banner.jpg") center bottom / cover no-repeat;
-  border-bottom: 4px solid var(--gold);
+  border: 4px solid var(--gold);
 }
 
 .area-header .tb-header-inner {
