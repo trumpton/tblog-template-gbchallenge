@@ -63,11 +63,12 @@ blockquote {
   position: relative;
   border-radius: 14px;
   overflow: hidden;
-  /* The image itself already carries a solid black band across its own
-     bottom (cropped/extended before upload) for the title to sit on --
-     "center bottom" keeps that band anchored to the visible bottom edge
-     at any viewport width, and the plain #000 fallback matches it
-     seamlessly if `cover` ever needs to show past the image itself. */
+  /* The photo's own lower half is already near-black (the foreground
+     grass, underexposed against the sunset sky) -- plenty of contrast
+     for the title to sit on. "center bottom" keeps that dark half
+     anchored to the visible bottom edge at any viewport width, and the
+     plain #000 fallback matches it seamlessly if `cover` ever needs to
+     show past the image itself. */
   background: #000 url("../img/banner.jpg") center bottom / cover no-repeat;
 }
 
@@ -86,12 +87,13 @@ blockquote {
   margin: 0;
   font-size: clamp(1.9rem, 4.5vw, 3rem);
   font-weight: 800;
+  line-height: 1.05;
   letter-spacing: -0.01em;
-  color: var(--gold);
+  color: var(--gold-deep);
 }
 
 .area-header .tb-tagline {
-  margin: 0.35rem 0 0;
+  margin: 0.1rem 0 0;
   font-size: clamp(1rem, 2vw, 1.25rem);
   color: #fff;
   font-weight: 400;
