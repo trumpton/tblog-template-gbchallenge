@@ -1,0 +1,121 @@
+{
+  "name": "GB Challenge",
+  "slug": "gbchallenge",
+  "version": "1.5.0",
+  "author": "TBlog",
+  "description": "A warm, editorial theme for charity-event blogs: a sunset hero banner, a navy-and-gold palette, and a dedicated two-column Event format with a hand-lettered drop cap on every Overview.",
+  "tblog_theme_api": 2,
+  "uuid": "7e4c88f8-5a8a-4151-bc66-13d884e0508e",
+  "responsive": {
+    "sidebar_left": "pullout",
+    "sidebar_right": "above"
+  },
+  "post_formats": [
+    {
+      "name": "Overview",
+      "sections": [
+        {"title": "Overview"}
+      ]
+    },
+    {
+      "name": "Event",
+      "sections": [
+        {"title": "Overview"},
+        {"title": "Post"},
+        {"title": "Photos"}
+      ]
+    }
+  ],
+  "default_layout": {
+    "header": [
+      {
+        "type": "header",
+        "config": {
+          "html": "<h1>My Charity Blog</h1><p class=\"tb-tagline\">Stories from our fundraising events</p>",
+          "height": "250px"
+        },
+        "style": {}
+      }
+    ],
+    "sidebar_left": [],
+    "sidebar_right": [
+      {
+        "type": "blog_archive",
+        "config": {
+          "title": "Archive",
+          "group_by": "month"
+        },
+        "style": {}
+      }
+    ],
+    "main": [
+      {
+        "type": "page_list",
+        "config": {
+          "page_size": 10,
+          "filterable": true
+        },
+        "style": {}
+      }
+    ],
+    "main_view": [
+      {
+        "type": "view_post",
+        "config": {
+          "post_format": "Overview",
+          "section_spacing": "16px",
+          "section_styles": [
+            {
+              "show_title": false,
+              "ornate_first_letter": true,
+              "ornate_font": "'Kleymissky', cursive",
+              "ornate_font_scale": 130
+            }
+          ]
+        },
+        "style": {}
+      },
+      {
+        "type": "view_post",
+        "config": {
+          "post_format": "Event",
+          "section_spacing": "28px",
+          "section_styles": [
+            {
+              "show_title": false,
+              "ornate_first_letter": true,
+              "ornate_font": "'Kleymissky', cursive",
+              "ornate_font_scale": 130
+            },
+            {
+              "show_title": true,
+              "columns": 2,
+              "fit_fill": true
+            },
+            {
+              "show_title": true
+            }
+          ]
+        },
+        "style": {}
+      },
+      {
+        "type": "view_post",
+        "config": {
+          "post_format": "",
+          "section_spacing": "16px"
+        },
+        "style": {}
+      }
+    ],
+    "footer": [
+      {
+        "type": "html",
+        "config": {
+          "html": "<p>Thank you for being part of our story. Powered by TBlog.</p>"
+        },
+        "style": {}
+      }
+    ]
+  }
+}
