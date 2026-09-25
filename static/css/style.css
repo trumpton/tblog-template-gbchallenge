@@ -29,8 +29,8 @@ body {
   min-height: 100vh;
 }
 
-a { color: var(--navy); }
-a:hover { color: var(--gold-deep); }
+a { color: var(--gold); }
+a:hover { color: var(--navy); }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--sky);
   outline-offset: 2px;
@@ -50,9 +50,12 @@ blockquote {
 
 .area-header {
   position: relative;
-  background:
-    linear-gradient(180deg, rgba(7, 27, 54, 0.35) 0%, rgba(7, 27, 54, 0.55) 55%, rgba(7, 27, 54, 0.9) 100%),
-    url("../img/banner.jpg") center 40% / cover no-repeat;
+  /* The image itself already carries a solid black band across its own
+     bottom (cropped/extended before upload) for the title to sit on --
+     "center bottom" keeps that band anchored to the visible bottom edge
+     at any viewport width, and the plain #000 fallback matches it
+     seamlessly if `cover` ever needs to show past the image itself. */
+  background: #000 url("../img/banner.jpg") center bottom / cover no-repeat;
   border-bottom: 4px solid var(--gold);
 }
 
@@ -65,7 +68,6 @@ blockquote {
   margin: 0 auto;
   padding: 1.5rem 1.25rem 2rem;
   color: #fff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 .area-header h1 {
@@ -257,9 +259,19 @@ blockquote {
 
 .tb-section-body img { max-width: 100%; border-radius: 8px; height: auto; }
 
+/* Imported/pasted post content can carry its own inline background-color
+   (a leftover from the original site or word processor) that was
+   invisible on a plain white page but shows up as a mismatched "bar"
+   once it sits inside this theme's own paper-coloured section -- strip
+   it so the section's own background always shows through cleanly. */
+.tb-post-full [style*="background"],
+.tb-post-excerpt [style*="background"] {
+  background: none !important;
+}
+
 /* View buttons (close/permalink/edit) -- base box/size/position comes
    from the shared responsive.css; this just tints them to match. */
-.tb-view-btn { background: rgba(11, 44, 84, 0.08); border-color: var(--line); color: var(--navy); }
+.tb-view-btn { background: rgba(11, 44, 84, 0.08); border-color: var(--line); color: var(--gold); }
 .tb-view-btn:hover, .tb-view-btn:focus-visible { background: var(--gold); color: var(--navy-deep); }
 
 /* ------------------------------------------------------- misc widgets --- */
