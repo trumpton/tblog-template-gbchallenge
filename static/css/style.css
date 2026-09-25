@@ -29,7 +29,7 @@ body {
   min-height: 100vh;
 }
 
-a { color: var(--gold); }
+a { color: var(--gold-deep); }
 a:hover { color: var(--navy); }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--sky);
@@ -69,7 +69,6 @@ blockquote {
      at any viewport width, and the plain #000 fallback matches it
      seamlessly if `cover` ever needs to show past the image itself. */
   background: #000 url("../img/banner.jpg") center bottom / cover no-repeat;
-  border: 4px solid var(--gold);
 }
 
 .area-header .tb-header-inner {
