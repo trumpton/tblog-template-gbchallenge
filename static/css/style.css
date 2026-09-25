@@ -48,38 +48,44 @@ blockquote {
 
 /* ---------------------------------------------------------- header --- */
 
-/* Capped rather than edge-to-edge: on a genuinely wide monitor, a
-   full-bleed short banner forces `cover` to crop hard into the subject
-   (the wider the viewport, the more it crops from the top). Capping the
-   width keeps the crop modest at any screen, and reads as a framed
-   "card" consistent with the rest of the site's rounded panels. */
-.area-header-wrap {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.25rem 1rem 0;
-}
-
+/* Full-bleed, flush with the top of the page -- no card, no border, no
+   inset margin. A fixed height (not the header widget's own inline
+   min-height -- see the .tb-header-inner override below) keeps this
+   predictable regardless of what a blog's own layout carries over on
+   theme re-import. The banner image itself is extended well past its
+   own original width (see static/img/banner.jpg's own build notes) so
+   `cover` -- which always trims from the top first, to keep the bottom
+   fully visible -- has enough width to draw from before it would ever
+   need to crop into the subject's head, up to a realistic ~1920px-wide
+   screen. */
 .area-header {
   position: relative;
-  border-radius: 14px;
-  overflow: hidden;
-  /* The photo's own lower half is already near-black (the foreground
-     grass, underexposed against the sunset sky) -- plenty of contrast
-     for the title to sit on. "center bottom" keeps that dark half
-     anchored to the visible bottom edge at any viewport width, and the
-     plain #000 fallback matches it seamlessly if `cover` ever needs to
-     show past the image itself. */
+  height: 250px;
   background: #000 url("../img/banner.jpg") center bottom / cover no-repeat;
 }
 
+/* Neutralize the generic widget-card padding/margin (tb-widget) that
+   every widget gets wrapped in, only for this one area -- the header
+   is meant to fill area-header exactly, not sit inset inside it. */
+.area-header .tb-widget {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
 .area-header .tb-header-inner {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
+  /* Pinned to the bottom of .area-header regardless of the widget's own
+     configured height (min-height, overridden below) -- so the title
+     always sits on the image's own dark lower half instead of
+     wherever a taller box would otherwise center it. */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 0 !important;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 2rem;
+  padding: 0 1.25rem 1.5rem;
   color: #fff;
 }
 

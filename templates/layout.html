@@ -14,9 +14,7 @@
 <body>
   <div class="page" style="{{ page_style }}" {{ page_attrs }}>
     {% if areas.header %}
-      <div class="area-header-wrap">
-        <div class="area area-header" style="{{ area_own_style.header }}" {{ area_attrs.header }}>{{ areas.header }}</div>
-      </div>
+      <div class="area area-header" style="{{ area_own_style.header }}" {{ area_attrs.header }}>{{ areas.header }}</div>
     {% endif %}
 
     <div class="wrap">
