@@ -90,9 +90,9 @@ blockquote {
    height (see .area-header above) -- it just gets less room and its
    clamp()'d font shrinks instead. Pinned to the bottom 40% of the
    banner -- the same fraction the photo's own dark band always
-   occupies at the bottom of the box, whatever the crop -- and centered
-   within it, so the text is always readable against that solid dark
-   background rather than over the sky. */
+   occupies at the bottom of the box, whatever the crop -- flush to
+   that band's bottom-left corner, so the text is always readable
+   against that solid dark background rather than over the sky. */
 .tb-banner-caption {
   position: absolute;
   left: 0;
@@ -101,12 +101,12 @@ blockquote {
   height: 40%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-end;
   gap: 0.15em;
   overflow: hidden;
-  padding: 0 1.25rem;
-  text-align: center;
+  padding: 0 1.25rem 0.75rem;
+  text-align: left;
   color: #fff;
 }
 
@@ -340,6 +340,6 @@ blockquote {
 /* Keep the shared engine's own 768px breakpoint (see SPEC.md "Keep your
    own narrow-screen breakpoint... at exactly 768px"). */
 @media (max-width: 768px) {
-  .tb-banner-caption { padding: 0 1rem; }
+  .tb-banner-caption { padding: 0 1rem 0.5rem; }
   .tb-page-matrix { flex-direction: column; }
 }
