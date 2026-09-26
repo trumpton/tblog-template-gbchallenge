@@ -49,19 +49,25 @@ blockquote {
 /* ---------------------------------------------------------- header --- */
 
 /* Full-bleed, flush with the top of the page -- no card, no border, no
-   inset margin. A fixed height (not the header widget's own inline
-   min-height -- see the .tb-header-inner override below) keeps this
-   predictable regardless of what a blog's own layout carries over on
-   theme re-import. The banner image is a seamlessly tileable strip
-   (repeats the same scene) -- repeat-x at a fixed scaled height means
-   it always fills the full width at any screen size with no cropping
-   into the subject at all, unlike `cover`, which has to crop something
-   once the container's own aspect ratio doesn't match the photo's. */
+   inset margin. Height is 500px, but never more than 80% of the
+   viewport height, so it can't dominate a short or narrow-but-tall
+   phone screen -- the same `min(500px, 80vh)` is set on the header
+   widget's own config.height (theme.json) as a min-height fallback for
+   when JavaScript/CSS min() support is unavailable.
+
+   The banner photo (static/img/banner.jpg -- a wide panorama with a
+   woman and dog silhouetted at its right edge, over a dark, noisy band
+   along its bottom ~40%) is anchored `right bottom` and scaled with
+   `cover`: whichever axis the box is proportionally wider/taller than
+   the photo on, only the photo's *top* and *left* are ever cropped away
+   -- its right edge (the woman and dog) and the whole of its bottom
+   dark band always stay in frame, at every screen width. */
 .area-header {
   position: relative;
-  height: 250px;
-  background: #000 url("../img/banner.jpg") repeat-x left bottom;
-  background-size: auto 250px;
+  height: min(500px, 80vh);
+  overflow: hidden;
+  background: #000 url("../img/banner.jpg") no-repeat right bottom;
+  background-size: cover;
 }
 
 /* Neutralize the generic widget-card padding/margin (tb-widget) that
@@ -74,37 +80,49 @@ blockquote {
 }
 
 .area-header .tb-header-inner {
-  /* Pinned to the bottom of .area-header regardless of the widget's own
-     configured height (min-height, overridden below) -- so the title
-     always sits on the image's own dark lower half instead of
-     wherever a taller box would otherwise center it. Sized (with the
-     title/tagline below) to stay within the bottom 40% of the 250px
-     header even in the worst case: a long title wrapped onto two
-     lines. */
+  position: relative;
+  height: 100%;
+  min-height: 0 !important;
+}
+
+/* The title/tagline: absolutely positioned, so a wrapped two-line title
+   can never inflate .tb-header-inner past the banner's own fixed
+   height (see .area-header above) -- it just gets less room and its
+   clamp()'d font shrinks instead. Pinned to the bottom 40% of the
+   banner -- the same fraction the photo's own dark band always
+   occupies at the bottom of the box, whatever the crop -- and centered
+   within it, so the text is always readable against that solid dark
+   background rather than over the sky. */
+.tb-banner-caption {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  min-height: 0 !important;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 1.25rem 0.5rem;
+  height: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  overflow: hidden;
+  padding: 0 1.25rem;
+  text-align: center;
   color: #fff;
 }
 
-.area-header h1 {
+.tb-banner-caption h1 {
   margin: 0;
-  font-size: clamp(1.3rem, 3vw, 1.75rem);
+  font-size: clamp(1rem, 1.1rem + 2vw, 2.2rem);
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.01em;
   color: var(--gold-deep);
 }
 
-.area-header .tb-tagline {
-  margin: 0.05rem 0 0;
+.tb-banner-caption .tb-tagline {
+  margin: 0;
   line-height: 1.2;
-  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+  font-size: clamp(0.7rem, 0.6rem + 1vw, 1.05rem);
   color: #fff;
   font-weight: 400;
 }
@@ -322,6 +340,6 @@ blockquote {
 /* Keep the shared engine's own 768px breakpoint (see SPEC.md "Keep your
    own narrow-screen breakpoint... at exactly 768px"). */
 @media (max-width: 768px) {
-  .area-header .tb-header-inner { padding: 0 1rem 0.5rem; }
+  .tb-banner-caption { padding: 0 1rem; }
   .tb-page-matrix { flex-direction: column; }
 }

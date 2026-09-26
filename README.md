@@ -11,8 +11,12 @@ look.
 - **Event** post format -- three sections, `Overview`, `Post` and
   `Photos`. `Overview` opens with a large hand-lettered drop cap (see
   "Font" below); `Post` renders in two columns.
-- A full-bleed header banner (`static/img/banner.jpg`) with a navy
-  gradient scrim, ready for a blog's own title/tagline.
+- A full-bleed, right-aligned sunset hero banner (`static/img/banner.jpg`),
+  500px tall (capped at 80% of the viewport height on short screens), with
+  the blog's title/tagline pinned to the photo's own dark band across its
+  bottom 40% -- the woman and dog silhouetted at the photo's right edge
+  stay in frame at every screen width, cropping only from the left as
+  needed.
 - Sidebar archive, tags and popular-posts widgets; a filterable post
   list; a footer.
 
