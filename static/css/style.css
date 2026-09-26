@@ -1,0 +1,350 @@
+/*
+ * GB Challenge -- a warm, editorial theme for charity-event blogs.
+ * Palette drawn from a dusk photograph (soft sky-grey to amber) and a
+ * navy/gold charity-brand reference: deep navy for structure, gold for
+ * accents and calls to action, sky blue as a light secondary accent.
+ */
+
+:root {
+  --navy: #0b2c54;
+  --navy-deep: #071b36;
+  --gold: #f4c430;
+  --gold-deep: #c99a12;
+  --sky: #6ec3ef;
+  --paper: #fbf8f2;
+  --paper-dim: #f1ecdf;
+  --ink: #1c2733;
+  --ink-soft: #56626f;
+  --sunset: #e2a15f;
+  --line: rgba(11, 44, 84, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--paper-dim);
+  min-height: 100vh;
+}
+
+a { color: var(--gold-deep); }
+a:hover { color: var(--navy); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+}
+
+blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--sunset);
+  background: rgba(226, 161, 95, 0.1);
+  color: var(--ink);
+}
+
+.page { min-height: 100vh; }
+
+/* ---------------------------------------------------------- header --- */
+
+/* Full-bleed, flush with the top of the page -- no card, no border, no
+   inset margin. Height is 500px, but never more than 80% of the
+   viewport height, so it can't dominate a short or narrow-but-tall
+   phone screen -- the same `min(500px, 80vh)` is set on the header
+   widget's own config.height (theme.json) as a min-height fallback for
+   when JavaScript/CSS min() support is unavailable.
+
+   The banner photo (static/img/banner.jpg -- a wide panorama with a
+   woman and dog silhouetted at its right edge, over a dark, noisy band
+   along its bottom ~40%) is anchored `right bottom` and scaled with
+   `cover`: whichever axis the box is proportionally wider/taller than
+   the photo on, only the photo's *top* and *left* are ever cropped away
+   -- its right edge (the woman and dog) and the whole of its bottom
+   dark band always stay in frame, at every screen width. */
+.area-header {
+  position: relative;
+  height: min(500px, 80vh);
+  overflow: hidden;
+  background: #000 url("../img/banner.jpg") no-repeat right bottom;
+  background-size: cover;
+}
+
+/* Neutralize the generic widget-card padding/margin (tb-widget) that
+   every widget gets wrapped in, only for this one area -- the header
+   is meant to fill area-header exactly, not sit inset inside it. */
+.area-header .tb-widget {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+/* The header widget's own content (whatever HTML is actually stored
+   for it -- see below) renders directly inside .tb-header-inner, with
+   no wrapper div of this theme's own: styling therefore targets
+   .area-header h1 / .area-header .tb-tagline directly rather than a
+   bespoke class, so it applies to *any* blog's own stored banner
+   content, including one customized (or carried forward from an older
+   version of this theme, before this file existed) with the plain
+   `<h1>...</h1><p class="tb-tagline">...</p>` markup -- there is no
+   wrapper class such a blog's own stored config could be missing.
+
+   .tb-header-inner itself is absolutely positioned and pinned to the
+   bottom 40% of the banner -- the same fraction the photo's own dark
+   band always occupies at the bottom of the box, whatever the crop --
+   flush to that band's bottom-left corner, so the text is always
+   readable against that solid dark background rather than over the
+   sky, and a wrapped two-line title can never inflate it past the
+   banner's own fixed height (see .area-header above) -- it just gets
+   less room and its clamp()'d font shrinks instead. */
+.area-header .tb-header-inner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40%;
+  min-height: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.15em;
+  overflow: hidden;
+  padding: 0 1.25rem 0.75rem;
+  text-align: left;
+  color: #fff;
+}
+
+.area-header h1 {
+  margin: 0;
+  font-size: clamp(1rem, 1.1rem + 2vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--gold-deep);
+}
+
+.area-header .tb-tagline {
+  margin: 0;
+  line-height: 1.2;
+  font-size: clamp(0.7rem, 0.6rem + 1vw, 1.05rem);
+  color: #fff;
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------- grid --- */
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.page-columns { display: flex; gap: 1.5rem; align-items: flex-start; }
+.area-main, .area-main-view { flex: 1 1 auto; min-width: var(--tb-main-min-w, 0); }
+.area-sidebar.sidebar-left  { flex: 0 0 var(--tb-sidebar-left-w, 250px); }
+.area-sidebar.sidebar-right { flex: 0 0 var(--tb-sidebar-right-w, 250px); }
+
+.area-main, .area-main-view, .area-sidebar {
+  background: var(--paper);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.area-footer {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #cfe0f2;
+  background: var(--navy-deep);
+  border-radius: 12px;
+}
+.area-footer a { color: var(--gold); }
+
+/* ---------------------------------------------------------- widgets --- */
+
+.tb-widget { padding: 1.1rem 1.25rem; margin-bottom: 1rem; border-radius: 10px; }
+.area-main > .tb-widget:last-child,
+.area-main-view > .tb-widget:last-child,
+.area-sidebar > .tb-widget:last-child { margin-bottom: 0; }
+
+.tb-widget-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--navy);
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 0.35rem;
+}
+
+/* -------------------------------------------------------- post cards --- */
+
+.tb-page-list, .tb-page-matrix, .tb-featured-posts, .tb-popular-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tb-post-card {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.tb-post-card:hover { border-color: var(--gold); transform: translateY(-1px); }
+.tb-post-card h3 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+.tb-post-card h3 a { text-decoration: none; color: var(--navy); }
+.tb-post-card h3 a:hover { color: var(--gold-deep); }
+
+.tb-post-date { font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 0.4rem; letter-spacing: 0.02em; text-transform: uppercase; }
+.tb-post-excerpt { margin: 0.4rem 0; color: var(--ink); }
+.tb-read-more {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--gold);
+}
+.tb-read-more:hover { color: var(--gold-deep); }
+
+.tb-page-matrix { flex-direction: row; flex-wrap: wrap; }
+.tb-matrix-box {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  background-color: var(--navy);
+  color: #fff;
+}
+.tb-matrix-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(7,27,54,0.85) 100%);
+}
+.tb-matrix-title { position: relative; padding: 0.75rem; font-weight: 700; }
+
+/* --------------------------------------------------------- filtering --- */
+
+.tb-filter-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.tb-filter-banner select,
+.tb-filter-banner input[type="text"] {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  color: var(--ink);
+}
+.tb-filter-banner input[type="text"] { flex: 1 1 160px; }
+.tb-filter-banner button {
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tb-filter-banner button:hover { background: var(--gold-deep); }
+
+/* --------------------------------------------------------------- tags --- */
+
+.tb-tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tb-tag-chip {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--navy-deep);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tb-tag-chip:hover { background: var(--gold-deep); color: #fff; }
+
+/* ------------------------------------------------------------ archive --- */
+
+.tb-archive-year { margin-bottom: 0.9rem; }
+.tb-archive-year:last-child { margin-bottom: 0; }
+.tb-archive-year > summary { cursor: pointer; font-weight: 700; color: var(--navy); }
+.tb-archive-month { margin: 0.35rem 0 0.35rem 0.9rem; }
+.tb-archive-month summary { cursor: pointer; opacity: 0.85; }
+.tb-archive-month ul, .tb-archive-group ul { list-style: none; margin: 0.3rem 0 0; padding: 0; }
+.tb-archive-month li, .tb-archive-group li { margin-bottom: 0.3rem; }
+.tb-archive-month a, .tb-archive-group a { text-decoration: none; }
+.tb-archive-month a:hover, .tb-archive-group a:hover { color: var(--gold-deep); }
+
+/* ------------------------------------------------------- open post --- */
+
+.tb-post-full h1 { margin: 0 0 0.25rem; color: var(--navy); }
+.tb-post-open { padding: 0.25rem; }
+
+.tb-section { margin-bottom: 1rem; }
+.tb-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.3rem;
+  color: var(--navy);
+  border-left: 4px solid var(--gold);
+  padding-left: 0.6rem;
+}
+.tb-section-body { line-height: 1.65; }
+.tb-section-columns { column-gap: 1.5rem; }
+.tb-col-piece { break-inside: avoid; }
+
+/* Drop-capped lede paragraph, using the theme's own hand-lettered font
+   (see the @font-face below) -- see SPEC.md "Ornate first letters". */
+.tb-ornate-letter {
+  color: var(--gold-deep);
+  padding-right: 0.05em;
+}
+
+.tb-section-body img { max-width: 100%; border-radius: 8px; height: auto; }
+
+/* Imported/pasted post content can carry its own inline background-color
+   (a leftover from the original site or word processor) that was
+   invisible on a plain white page but shows up as a mismatched "bar"
+   once it sits inside this theme's own paper-coloured section -- strip
+   it so the section's own background always shows through cleanly. */
+.tb-post-full [style*="background"],
+.tb-post-excerpt [style*="background"] {
+  background: none !important;
+}
+
+/* View buttons (close/permalink/edit) -- base box/size/position comes
+   from the shared responsive.css; this just tints them to match. */
+.tb-view-btn { background: rgba(11, 44, 84, 0.08); border-color: var(--line); color: var(--gold); }
+.tb-view-btn:hover, .tb-view-btn:focus-visible { background: var(--gold); color: var(--navy-deep); }
+
+/* ------------------------------------------------------- misc widgets --- */
+
+.tb-empty { color: var(--ink-soft); font-style: italic; }
+.tb-video-banner-overlay { color: #fff; }
+
+/* ----------------------------------------------------------- footer --- */
+
+.area-footer p { margin: 0; }
+
+/* --------------------------------------------------------------- font --- */
+
+/* Hand-authored so this exact family name is what theme.json's own
+   ornate_font values reference -- see SPEC.md "Fonts". */
+@font-face {
+  font-family: "Kleymissky";
+  src: url("../fonts/Kleymissky-0xBG.otf") format("opentype");
+  font-display: swap;
+}
+
+/* ------------------------------------------------------- responsive --- */
+
+/* Keep the shared engine's own 768px breakpoint (see SPEC.md "Keep your
+   own narrow-screen breakpoint... at exactly 768px"). */
+@media (max-width: 768px) {
+  .area-header .tb-header-inner { padding: 0 1rem 0.5rem; }
+  .tb-page-matrix { flex-direction: column; }
+}
