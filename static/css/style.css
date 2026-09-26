@@ -79,26 +79,31 @@ blockquote {
   height: 100%;
 }
 
-.area-header .tb-header-inner {
-  position: relative;
-  height: 100%;
-  min-height: 0 !important;
-}
+/* The header widget's own content (whatever HTML is actually stored
+   for it -- see below) renders directly inside .tb-header-inner, with
+   no wrapper div of this theme's own: styling therefore targets
+   .area-header h1 / .area-header .tb-tagline directly rather than a
+   bespoke class, so it applies to *any* blog's own stored banner
+   content, including one customized (or carried forward from an older
+   version of this theme, before this file existed) with the plain
+   `<h1>...</h1><p class="tb-tagline">...</p>` markup -- there is no
+   wrapper class such a blog's own stored config could be missing.
 
-/* The title/tagline: absolutely positioned, so a wrapped two-line title
-   can never inflate .tb-header-inner past the banner's own fixed
-   height (see .area-header above) -- it just gets less room and its
-   clamp()'d font shrinks instead. Pinned to the bottom 40% of the
-   banner -- the same fraction the photo's own dark band always
-   occupies at the bottom of the box, whatever the crop -- flush to
-   that band's bottom-left corner, so the text is always readable
-   against that solid dark background rather than over the sky. */
-.tb-banner-caption {
+   .tb-header-inner itself is absolutely positioned and pinned to the
+   bottom 40% of the banner -- the same fraction the photo's own dark
+   band always occupies at the bottom of the box, whatever the crop --
+   flush to that band's bottom-left corner, so the text is always
+   readable against that solid dark background rather than over the
+   sky, and a wrapped two-line title can never inflate it past the
+   banner's own fixed height (see .area-header above) -- it just gets
+   less room and its clamp()'d font shrinks instead. */
+.area-header .tb-header-inner {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   height: 40%;
+  min-height: 0 !important;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -110,7 +115,7 @@ blockquote {
   color: #fff;
 }
 
-.tb-banner-caption h1 {
+.area-header h1 {
   margin: 0;
   font-size: clamp(1rem, 1.1rem + 2vw, 2.2rem);
   font-weight: 800;
@@ -119,7 +124,7 @@ blockquote {
   color: var(--gold-deep);
 }
 
-.tb-banner-caption .tb-tagline {
+.area-header .tb-tagline {
   margin: 0;
   line-height: 1.2;
   font-size: clamp(0.7rem, 0.6rem + 1vw, 1.05rem);
@@ -340,6 +345,6 @@ blockquote {
 /* Keep the shared engine's own 768px breakpoint (see SPEC.md "Keep your
    own narrow-screen breakpoint... at exactly 768px"). */
 @media (max-width: 768px) {
-  .tb-banner-caption { padding: 0 1rem 0.5rem; }
+  .area-header .tb-header-inner { padding: 0 1rem 0.5rem; }
   .tb-page-matrix { flex-direction: column; }
 }

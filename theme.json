@@ -1,7 +1,7 @@
 {
   "name": "GB Challenge",
   "slug": "gbchallenge",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "author": "TBlog",
   "description": "A warm, editorial theme for charity-event blogs: a right-aligned sunset hero banner, a navy-and-gold palette, and a dedicated two-column Event format with a hand-lettered drop cap on every Overview.",
   "tblog_theme_api": 2,
@@ -31,7 +31,7 @@
       {
         "type": "header",
         "config": {
-          "html": "<div class=\"tb-banner-caption\"><h1>My Charity Blog</h1><p class=\"tb-tagline\">Stories from our fundraising events</p></div>",
+          "html": "<h1>My Charity Blog</h1><p class=\"tb-tagline\">Stories from our fundraising events</p>",
           "height": "min(500px, 80vh)"
         },
         "style": {}
