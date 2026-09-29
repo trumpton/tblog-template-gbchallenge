@@ -28,7 +28,7 @@
   // beyond it they use the side-on model, seen SIDE_VIEW_ANGLE off pure side-on.
   var HORIZONTAL_ANGLE0 = 5 * DEG;
   var HORIZONTAL_ANGLE1 = 15 * DEG;
-  var HORIZONTAL_ANGLE2 = 50 * DEG;
+  var HORIZONTAL_ANGLE2 = 35 * DEG;
   var SIDE_VIEW_ANGLE = 25 * DEG;
   var MIN_CLIMB = 15 * DEG, MAX_CLIMB = 30 * DEG;   // upward angle range
   var CEILING = 0.90;             // a flight ends before reaching this fraction of the image height
