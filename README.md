@@ -40,12 +40,12 @@ directly.
 `static/js/birds.js` draws a canvas over the header banner: a flock of
 4-10 silhouetted birds lifts off from a random point on the horizon and
 flies away over 10-30 s, climbing at 15-30 degrees. The left/right angle
-of the flight is anything from 0 to 45 degrees (`HORIZONTAL_ANGLE2`); up
+of the flight is anything from 5 (`HORIZONTAL_ANGLE0`) to 50 degrees (`HORIZONTAL_ANGLE2`); up
 to 15 degrees (`HORIZONTAL_ANGLE1`) the birds are drawn from behind,
 beyond that side-on (seen 25 degrees off pure side-on). A steep climb
 shortens the flight so it never rises above 90% of the image height.
 A small share of flocks start just out of shot, and are in frame within
-10 s. A launch in the outer 10% of the width always flies inwards, and every flock stays in frame until it has been seen. 2-6 s later the next flock goes (never more than one at a time).
+10 s. A launch in the outer 10% of the width always flies inwards, and every flock stays in frame until it has been seen. The first flock launches 0.75 s after the page has loaded, and 2-6 s after each flock the next goes (never more than one at a time).
 Wings start out of sync and are fully in step by a third of the flight. It is skipped when the
 visitor prefers reduced motion.
 

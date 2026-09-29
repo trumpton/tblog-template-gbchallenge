@@ -23,11 +23,12 @@
   var DEG = Math.PI / 180;
 
   // Flight geometry. Left/right angle of the flight path, measured from
-  // "straight away from the viewer", is anything from 0 to HORIZONTAL_ANGLE2.
+  // "straight away from the viewer", is anything from HORIZONTAL_ANGLE0 to HORIZONTAL_ANGLE2.
   // Up to HORIZONTAL_ANGLE1 the birds are drawn with the from-behind model;
   // beyond it they use the side-on model, seen SIDE_VIEW_ANGLE off pure side-on.
+  var HORIZONTAL_ANGLE0 = 5 * DEG;
   var HORIZONTAL_ANGLE1 = 15 * DEG;
-  var HORIZONTAL_ANGLE2 = 45 * DEG;
+  var HORIZONTAL_ANGLE2 = 50 * DEG;
   var SIDE_VIEW_ANGLE = 25 * DEG;
   var MIN_CLIMB = 15 * DEG, MAX_CLIMB = 30 * DEG;   // upward angle range
   var CEILING = 0.90;             // a flight ends before reaching this fraction of the image height
@@ -36,6 +37,7 @@
   // (fraction of the width) beyond the left edge: a launch there is out of
   // shot (roughly 3-7% of flocks, depending on the screen shape)...
   var OUT_OF_SHOT_MARGIN = 0.03;
+  var FIRST_DELAY = 0.75;         // seconds after page load before the first flock launches
   var GRACE = 10;                 // ...and such a flock is in frame by this many seconds
   var EDGE_ZONE = 0.10;           // a launch this close to a side edge must fly inwards
   var SOLID_END = 0.60;           // a flock is fully solid until this point of its flight
@@ -86,7 +88,7 @@
   }
 
   var flock = null;      // current flock, or null while waiting
-  var waitLeft = rnd(1, 3);   // first flock shortly after load
+  var waitLeft = FIRST_DELAY;   // first flock this long after the page has loaded
 
   function easeAt(t) { return 1 - Math.pow(1 - t, 1.7); }
 
@@ -115,13 +117,13 @@
       return x < EDGE_ZONE * W ? 1 : x > (1 - EDGE_ZONE) * W ? -1 : fallback;
     };
     var side = sideFor(x0, Math.random() < 0.5 ? -1 : 1);
-    var yaw = side * rnd(0, HORIZONTAL_ANGLE2);
+    var yaw = side * rnd(HORIZONTAL_ANGLE0, HORIZONTAL_ANGLE2);
     if (x0 < 0) {
       // Out of shot: it must drift right, into frame, within GRACE seconds.
       var reach = sideways * easeAt(Math.min(GRACE / dur, 0.5));
       var need = -x0 + 0.03 * W;
       if (reach * Math.sin(HORIZONTAL_ANGLE2) >= need) {
-        yaw = rnd(Math.asin(Math.min(1, need / reach)), HORIZONTAL_ANGLE2);
+        yaw = rnd(Math.max(HORIZONTAL_ANGLE0, Math.asin(Math.min(1, need / reach))), HORIZONTAL_ANGLE2);
       } else {
         x0 = rnd(0.02 * W, xMax);           // can't get in frame in time: start in shot
         yaw = sideFor(x0, side) * Math.abs(yaw);
@@ -131,8 +133,10 @@
     // phase it must still be inside the frame, so the drift is eased off
     // until it is (a flock never leaves the frame before it has been seen).
     var xSolid = function (y) { return x0 + sideways * easeAt(SOLID_END) * Math.sin(y); };
-    for (var k = 0; k < 20 && Math.abs(yaw) > 0.005 &&
-         (xSolid(yaw) < 0.03 * W || xSolid(yaw) > 0.97 * W); k++) yaw *= 0.8;
+    for (var k = 0; k < 20 && Math.abs(yaw) > HORIZONTAL_ANGLE0 &&
+         (xSolid(yaw) < 0.03 * W || xSolid(yaw) > 0.97 * W); k++) {
+      yaw = (yaw < 0 ? -1 : 1) * Math.max(HORIZONTAL_ANGLE0, Math.abs(yaw) * 0.8);
+    }
     var birds = [];
     for (var i = 0; i < n; i++) {
       birds.push({
@@ -292,5 +296,7 @@
     render();
     window.requestAnimationFrame(frame);
   }
-  window.requestAnimationFrame(frame);
+  // The clock starts once the page has fully loaded.
+  if (document.readyState === "complete") window.requestAnimationFrame(frame);
+  else window.addEventListener("load", function () { window.requestAnimationFrame(frame); });
 })();
