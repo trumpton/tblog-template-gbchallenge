@@ -12,7 +12,7 @@ look.
   `Photos`. `Overview` opens with a large hand-lettered drop cap (see
   "Font" below); `Post` renders in two columns.
 - A full-bleed, right-aligned sunset hero banner (`static/img/banner.jpg`),
-  420px tall (capped at 80% of the viewport height on short screens), with
+  40vh tall by default (set it with the header widget's Height field), with
   the blog's title/tagline pinned to the photo's own dark band across its
   bottom 40% -- the woman and dog silhouetted at the photo's right edge
   stay in frame at every screen width, cropping only from the left as
@@ -39,13 +39,15 @@ directly.
 
 `static/js/birds.js` draws a canvas over the header banner: a flock of
 4-10 silhouetted birds lifts off from a random point on the horizon and
-flies away from the viewer -- climbing at 15-30 degrees and drifting at
-most 15 degrees left or right -- over 10-30 s (shortened if a steep
-climb would take it above 90% of the image height). About 5% of flocks
-start just out of shot, and are in frame within 10 s. 5-10 s later the
-next flock goes (never more than one at a time). Wings are out of sync
-until 40% of the flight. It is skipped when the visitor prefers reduced
-motion.
+flies away over 10-30 s, climbing at 15-30 degrees. The left/right angle
+of the flight is anything from 0 to 45 degrees (`HORIZONTAL_ANGLE2`); up
+to 15 degrees (`HORIZONTAL_ANGLE1`) the birds are drawn from behind,
+beyond that side-on (seen 25 degrees off pure side-on). A steep climb
+shortens the flight so it never rises above 90% of the image height.
+A small share of flocks start just out of shot, and are in frame within
+10 s. 5-10 s later the next flock goes (never more than one at a time).
+Wings are out of sync until 40% of the flight. It is skipped when the
+visitor prefers reduced motion.
 
 ## Rebuilding the zip
 

@@ -49,22 +49,21 @@ blockquote {
 /* ---------------------------------------------------------- header --- */
 
 /* Full-bleed, flush with the top of the page -- no card, no border, no
-   inset margin. Height is 420px, but never more than 80% of the
-   viewport height, so it can't dominate a short or narrow-but-tall
-   phone screen -- the same `min(420px, 80vh)` is set on the header
-   widget's own config.height (theme.json) as a min-height fallback for
-   when JavaScript/CSS min() support is unavailable.
+   inset margin. The banner's height is NOT set here: it comes from the
+   header widget's own "Height" setting (theme.json `config.height`,
+   default 40vh, editable in the layout editor), which the widget renders
+   as an inline `min-height` on .tb-header-inner. .area-header simply
+   wraps that box (height: auto), so the setting always takes effect.
 
    The banner photo (static/img/banner.jpg -- a wide panorama with a
    woman and dog silhouetted at its right edge, over a dark band along
-   its bottom) is scaled to the full height of the box (420px by
-   default) at its natural aspect ratio, and anchored `right bottom`:
-   it is as wide as that scaling requires, and any excess is cropped at
-   the left-hand edge of the screen, so the woman and dog stay in
-   frame at every screen width. */
+   its bottom) is scaled to the full height of the box at its natural
+   aspect ratio, and anchored `right bottom`: it is as wide as that
+   scaling requires, and any excess is cropped at the left-hand edge of
+   the screen, so the woman and dog stay in frame at every screen width.
+   A shorter banner therefore shows more of the sky on a narrow screen. */
 .area-header {
   position: relative;
-  height: min(420px, 80vh);
   overflow: hidden;
   background: #000 url("../img/banner.jpg") no-repeat right bottom;
   background-size: auto 100%;
@@ -76,7 +75,6 @@ blockquote {
 .area-header .tb-widget {
   padding: 0;
   margin: 0;
-  height: 100%;
 }
 
 /* The header widget's own content (whatever HTML is actually stored
@@ -89,27 +87,18 @@ blockquote {
    `<h1>...</h1><p class="tb-tagline">...</p>` markup -- there is no
    wrapper class such a blog's own stored config could be missing.
 
-   .tb-header-inner itself is absolutely positioned and pinned to the
-   bottom 40% of the banner -- the same fraction the photo's own dark
-   band always occupies at the bottom of the box, whatever the crop --
-   flush to that band's bottom-left corner, so the text is always
-   readable against that solid dark background rather than over the
-   sky, and a wrapped two-line title can never inflate it past the
-   banner's own fixed height (see .area-header above) -- it just gets
-   less room and its clamp()'d font shrinks instead. */
+   .tb-header-inner is the box whose (inline) min-height sets the banner
+   height. Its text sits flush to the bottom-left corner, over the
+   photo's solid dark band (the bottom ~40% of the box, whatever the
+   crop), so it is always readable rather than over the sky. */
 .area-header .tb-header-inner {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 40%;
-  min-height: 0 !important;
+  position: relative;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
   gap: 0.15em;
-  overflow: hidden;
   padding: 0 1.25rem 0.75rem;
   text-align: left;
   color: #fff;

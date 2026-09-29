@@ -1,6 +1,6 @@
 /* Header animation: a flock of distant birds lifts off from the horizon
-   and flies away from the viewer (climbing 15-30 degrees, drifting at most
-   15 degrees left or right), then (after a pause) the next flock.
+   and flies away (climbing 15-30 degrees, angled up to 45 degrees left or
+   right of straight-away; from-behind bird model up to 15 degrees, side-on beyond), then (after a pause) the next flock.
 
    - One flock in flight at a time; 4-10 birds; launch point random along
      the horizon; flight lasts 10-30 s; 5-10 s pause between flocks.
@@ -22,14 +22,21 @@
   var TAU = Math.PI * 2;
   var DEG = Math.PI / 180;
 
-  // Flight geometry. The birds fly away from the viewer, so the
-  // left-right (yaw) angle is small and the climb angle does the rest.
-  var HORIZONTAL_ANGLE = 15 * DEG;        // max left/right angle away from straight-ahead
+  // Flight geometry. Left/right angle of the flight path, measured from
+  // "straight away from the viewer", is anything from 0 to HORIZONTAL_ANGLE2.
+  // Up to HORIZONTAL_ANGLE1 the birds are drawn with the from-behind model;
+  // beyond it they use the side-on model, seen SIDE_VIEW_ANGLE off pure side-on.
+  var HORIZONTAL_ANGLE1 = 15 * DEG;
+  var HORIZONTAL_ANGLE2 = 45 * DEG;
+  var SIDE_VIEW_ANGLE = 25 * DEG;
   var MIN_CLIMB = 15 * DEG, MAX_CLIMB = 30 * DEG;   // upward angle range
   var CEILING = 0.90;             // a flight ends before reaching this fraction of the image height
   var SPEED = 0.04;               // path length flown per second, as a fraction of header height
-  var OUT_OF_SHOT = 0.05;         // chance a flock starts just out of shot...
-  var GRACE = 10;                 // ...in which case it is in frame by this many seconds
+  // Launch points are drawn uniformly from the horizon, extended this far
+  // (fraction of the width) beyond the left edge: a launch there is out of
+  // shot (roughly 3-7% of flocks, depending on the screen shape)...
+  var OUT_OF_SHOT_MARGIN = 0.03;
+  var GRACE = 10;                 // ...and such a flock is in frame by this many seconds
 
   // Four variations of the same breed: arm/hand length, wing depth,
   // how far the hand sweeps back, tail length and body plumpness.
@@ -85,11 +92,6 @@
     var n = Math.floor(rnd(MIN_BIRDS, MAX_BIRDS + 1));
     var hy = HORIZON * H;
     var climb = rnd(MIN_CLIMB, MAX_CLIMB);
-    var yaw = rnd(-HORIZONTAL_ANGLE, HORIZONTAL_ANGLE);
-    var outOfShot = Math.random() < OUT_OF_SHOT;
-    // A flock that starts out of shot needs a decent sideways drift to
-    // bring it into frame, so give it a near-maximum left/right angle.
-    if (outOfShot) yaw = (Math.random() < 0.5 ? -1 : 1) * rnd(0.7, 1) * HORIZONTAL_ANGLE;
     // Angle and time are linked: the flight (path length = SPEED * time)
     // must end below CEILING of the image height, so a steeper climb
     // gets a shorter maximum flight time.
@@ -97,14 +99,22 @@
     var maxDur = maxRise / (Math.sin(climb) * SPEED * H);
     var dur = Math.min(rnd(MIN_FLIGHT, MAX_FLIGHT), maxDur);
     var path = SPEED * H * dur;
-    var dxTotal = path * Math.cos(climb) * Math.sin(yaw);   // screen drift left/right
-    var x0 = rnd(0.08, 0.92) * W;                            // launch point along the horizon
-    if (outOfShot) {
-      // Start just out of shot, on the side opposite to the drift, but only
-      // as far out as lets the flock be in frame within GRACE seconds.
-      var dxIn = Math.abs(dxTotal) * easeAt(Math.min(GRACE / dur, 0.5));
-      var off = Math.min(rnd(0.01, 0.05) * W, dxIn - 0.03 * W);
-      if (off > 0.005 * W) x0 = dxTotal > 0 ? -off : W + off;
+    var sideways = path * Math.cos(climb);   // ground-plane length of the flight
+    // Launch point along the horizon. The woman and dog fill the right-hand
+    // end of the banner (about 0.75 x its height), so launches avoid it; the
+    // range also runs slightly past the left edge (an out-of-shot start).
+    var xMax = Math.max(0.3 * W, W - 0.75 * H);
+    var x0 = rnd(-OUT_OF_SHOT_MARGIN * W, xMax);
+    var yaw = (Math.random() < 0.5 ? -1 : 1) * rnd(0, HORIZONTAL_ANGLE2);
+    if (x0 < 0) {
+      // Out of shot: it must drift right, into frame, within GRACE seconds.
+      var reach = sideways * easeAt(Math.min(GRACE / dur, 0.5));
+      var need = -x0 + 0.03 * W;
+      if (reach * Math.sin(HORIZONTAL_ANGLE2) >= need) {
+        yaw = rnd(Math.asin(Math.min(1, need / reach)), HORIZONTAL_ANGLE2);
+      } else {
+        x0 = rnd(0.02 * W, xMax);           // can't get in frame in time: start in shot
+      }
     }
     var birds = [];
     for (var i = 0; i < n; i++) {
@@ -214,7 +224,7 @@
     var t = flock.t, vis = visibility(t);
     if (vis <= 0) return;
     var hy = HORIZON * H;
-    var base = Math.max(4.5, H * 0.025);   // px per unit at the start
+    var base = Math.max(6, H * 0.028);   // px per unit at the start
     // Only the sky is drawn: birds rise out from behind the horizon.
     ctx.save();
     ctx.beginPath();
@@ -227,6 +237,10 @@
     // the birds themselves and the gaps between them, so the flock
     // visibly converges as it recedes.
     var persp = 1 - 0.82 * e;
+    // Bird model: from behind for shallow angles, else side-on.
+    var ay = Math.abs(flock.yaw);
+    var viewYaw = ay <= HORIZONTAL_ANGLE1 ? flock.yaw
+      : (flock.yaw < 0 ? -1 : 1) * (Math.PI / 2 - SIDE_VIEW_ANGLE);
     for (var i = 0; i < flock.birds.length; i++) {
       var b = flock.birds[i];
       var x = c.x + b.dx * persp;
@@ -237,7 +251,7 @@
       var ph = flock.clock * b.freq * TAU + (b.off + b.drift * flock.clock) * (1 - sync);
       var flap = Math.sin(ph) * 0.75 + 0.1;
       var lag = Math.sin(ph - 0.9) * 0.7;
-      drawBird(x, y, size, flock.yaw, flock.climb + b.pitchJit, flap, lag, vis, b.shape);
+      drawBird(x, y, size, viewYaw, flock.climb + b.pitchJit, flap, lag, vis, b.shape);
     }
     ctx.restore();
   }
