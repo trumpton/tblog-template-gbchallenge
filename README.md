@@ -39,7 +39,7 @@ directly.
 
 `static/js/birds.js` draws a canvas over the header banner: a flock of
 4-10 silhouetted birds lifts off from a random point on the horizon and
-flies away into the distance over 10-30 s, then 5-10 s later the next
+flies away across the sky (left or right, within 30 degrees of horizontal, possibly launching out of shot but in frame within 10 s) over 10-30 s, then 5-10 s later the next
 flock goes (never more than one at a time). Wings are out of sync until
 40% of the flight. It is skipped when the visitor prefers reduced motion.
 

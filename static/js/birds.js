@@ -23,10 +23,10 @@
   // Four variations of the same breed: arm/hand length, wing depth,
   // how far the hand sweeps back, tail length and body plumpness.
   var SHAPES = [
-    { L1: 0.48, L2: 0.62, chord: 0.20, sweep: 0.13, tail: 0.42, body: 1.00 }, // typical
-    { L1: 0.42, L2: 0.72, chord: 0.16, sweep: 0.18, tail: 0.36, body: 0.90 }, // long, slim wings
-    { L1: 0.52, L2: 0.50, chord: 0.26, sweep: 0.09, tail: 0.48, body: 1.12 }, // broad, short wings
-    { L1: 0.46, L2: 0.58, chord: 0.22, sweep: 0.22, tail: 0.55, body: 0.95 }  // swept hand, long tail
+    { L1: 0.48, L2: 0.62, chord: 0.15, sweep: 0.13, tail: 0.42, body: 1.00 }, // typical
+    { L1: 0.42, L2: 0.72, chord: 0.12, sweep: 0.18, tail: 0.36, body: 0.90 }, // long, slim wings
+    { L1: 0.52, L2: 0.50, chord: 0.19, sweep: 0.09, tail: 0.48, body: 1.12 }, // broad, short wings
+    { L1: 0.46, L2: 0.58, chord: 0.16, sweep: 0.22, tail: 0.55, body: 0.95 }  // swept hand, long tail
   ];
 
   var header = document.querySelector(".area-header");
@@ -68,12 +68,30 @@
   var flock = null;      // current flock, or null while waiting
   var waitLeft = rnd(1, 3);   // first flock shortly after load
 
+  // Cruise elevation of the flight path: +/-30 degrees about the horizontal.
+  var MAX_ELEV = 30 * Math.PI / 180;
+  // The birds are seen from 25 degrees off pure side-on, from behind.
+  var VIEW = 25 * Math.PI / 180, VC = Math.cos(VIEW), VS = Math.sin(VIEW);
+  var GRACE = 10;        // seconds: a flock that starts out of shot must be in frame by then
+
+  function easeAt(t) { return 1 - Math.pow(1 - t, 1.7); }
+
   function newFlock() {
     var n = Math.floor(rnd(MIN_BIRDS, MAX_BIRDS + 1));
-    var x0 = rnd(0.08, 0.92) * W;
-    // Any upward heading: from nearly-left to nearly-right, never straight down.
-    var heading = rnd(-Math.PI * 0.92, -Math.PI * 0.08);
-    var reach = rnd(0.45, 0.8) * H;
+    var dur = rnd(MIN_FLIGHT, MAX_FLIGHT);
+    var dir = Math.random() < 0.5 ? -1 : 1;          // flying right (+1) or left (-1)
+    var elev = rnd(-MAX_ELEV, MAX_ELEV);
+    var reachX = rnd(0.35, 0.7) * W;
+    var x0, off = 0;
+    if (Math.random() < 0.4) {
+      x0 = rnd(0.1, 0.9) * W;                         // launches in shot
+    } else {
+      off = rnd(0.02, 0.2) * W;                       // launches out of shot, behind its heading
+      x0 = dir > 0 ? -off : W + off;
+      // ...and must be back in frame by GRACE seconds into the flight.
+      var tIn = Math.min(GRACE / dur, 0.5);
+      reachX = Math.max(reachX, (off + 0.08 * W) / easeAt(tIn));
+    }
     var birds = [];
     for (var i = 0; i < n; i++) {
       birds.push({
@@ -88,64 +106,88 @@
         wob: rnd(0, TAU)
       });
     }
-    return { t: 0, dur: rnd(MIN_FLIGHT, MAX_FLIGHT), x0: x0, heading: heading,
-             reach: reach, birds: birds, clock: 0 };
+    return { t: 0, dur: dur, x0: x0, dir: dir, elev: elev, reachX: reachX,
+             climb: rnd(0.10, 0.22) * H, birds: birds, clock: 0 };
   }
 
-  /* One wing, as seen from behind a bird flying away: shoulder at the
-     origin, an arm segment to the wrist and a hand segment to the tip,
-     with a trailing edge that has small primary-feather notches. */
+  // Centre of the flock at eased progress e (0..1), before per-bird spacing.
+  function centre(f, e, hy) {
+    var u = Math.min(1, e / 0.25);                    // initial climb-out
+    var x = f.x0 + f.dir * f.reachX * e;
+    var y = hy - f.climb * (1 - (1 - u) * (1 - u)) - Math.tan(f.elev) * f.reachX * e;
+    return { x: x, y: Math.min(y, hy - H * 0.03) };   // stay above the hill
+  }
+
+  /* 3D-lite bird model. Bird space: x forward, y up, z out to the "near"
+     wing (-z is the far wing). Viewed 25 degrees off side-on, from
+     behind, so the wings foreshorten and the tail fans slightly. */
+  function proj(x, y, z) {
+    return [x * VC + z * VS, -y];
+  }
+  function poly(pts, smooth) {
+    var q = pts.map(function (p) { return proj(p[0], p[1], p[2]); });
+    var n = q.length, i;
+    ctx.beginPath();
+    if (smooth) {
+      // Curve through the edge midpoints, using each point as the control.
+      ctx.moveTo((q[n - 1][0] + q[0][0]) / 2, (q[n - 1][1] + q[0][1]) / 2);
+      for (i = 0; i < n; i++) {
+        var nx = q[(i + 1) % n];
+        ctx.quadraticCurveTo(q[i][0], q[i][1], (q[i][0] + nx[0]) / 2, (q[i][1] + nx[1]) / 2);
+      }
+    } else {
+      for (i = 0; i < n; i++) {
+        if (i) ctx.lineTo(q[i][0], q[i][1]); else ctx.moveTo(q[i][0], q[i][1]);
+      }
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
   function wing(side, flap, lag, sh) {
-    var a1 = flap;                  // arm angle (up positive)
-    var a2 = lag * 1.0 + 0.1;       // hand lags behind the arm
-    var L1 = sh.L1, L2 = sh.L2;
-    var wx = side * L1 * Math.cos(a1), wy = -L1 * Math.sin(a1);
-    var tx = wx + side * L2 * Math.cos(a2), ty = wy - L2 * Math.sin(a2);
-    var chord = sh.chord;
-
-    ctx.moveTo(side * 0.05, 0.02);
-    // leading edge, bowed slightly forward
-    ctx.quadraticCurveTo(side * L1 * 0.5, wy * 0.5 - 0.09, wx, wy - 0.02);
-    ctx.quadraticCurveTo((wx + tx) / 2, (wy + ty) / 2 - 0.05, tx, ty);
-    // primary feathers: three notched fingers back from the tip
-    var px = tx - side * 0.07, py = ty + sh.sweep;
-    ctx.lineTo(px + side * 0.05, py - 0.02);
-    ctx.lineTo(px - side * 0.03, py + 0.05);
-    ctx.lineTo(px - side * 0.11, py + 0.02);
-    ctx.lineTo(px - side * 0.14, py + 0.09);
-    // trailing edge back to the body
-    ctx.quadraticCurveTo(wx - side * 0.05, wy + chord + 0.05, side * 0.07, chord * 0.9);
-    ctx.lineTo(side * 0.03, 0.2);
+    var a1 = flap, a2 = lag * 1.0 + 0.1;
+    var wx = 0.0, wy = sh.L1 * Math.sin(a1), wz = side * sh.L1 * Math.cos(a1);
+    var tx = wx - sh.sweep * 0.8, ty = wy + sh.L2 * Math.sin(a2), tz = wz + side * sh.L2 * Math.cos(a2);
+    poly([
+      [0.10, 0, 0],
+      [0.08, wy * 0.5 + 0.02, wz * 0.5],
+      [wx + 0.05, wy + 0.01, wz],                       // wrist (leading edge)
+      [(wx + tx) / 2 + 0.02, (wy + ty) / 2 + 0.01, (wz + tz) / 2],
+      [tx + 0.01, ty + 0.01, tz],                       // wing tip
+      [tx - 0.08, ty - 0.02, tz - side * 0.03],         // primary feather fingers
+      [tx - 0.13, ty, tz - side * 0.09],
+      [tx - 0.18, ty - 0.02, tz - side * 0.15],
+      [wx - sh.chord * 0.75, wy - 0.03, wz * 0.85],     // trailing edge at the wrist
+      [-sh.chord * 0.7, -0.02, side * 0.10],
+      [-0.10, 0, 0]
+    ], true);
   }
-
-  function drawBird(x, y, size, flap, lag, alpha, sh) {
+  function drawBird(x, y, size, dir, pitch, flap, lag, alpha, sh) {
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(size, size);
+    ctx.scale(size * dir, size);            // mirror so it faces the way it flies
+    ctx.rotate(-pitch * dir * dir);         // nose up when climbing
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "#08070c";
+    wing(-1, flap, lag, sh);                // far wing
+    // body
     ctx.beginPath();
-    wing(-1, flap, lag, sh);
+    for (var k = 0; k < 20; k++) {
+      var th = k / 20 * TAU;
+      var q = proj(0.03 + 0.32 * Math.cos(th), 0.085 * sh.body * Math.sin(th), 0);
+      if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]);
+    }
     ctx.closePath();
     ctx.fill();
+    // head and beak
+    var hd = proj(0.36, 0.03, 0);
     ctx.beginPath();
-    wing(1, flap, lag, sh);
-    ctx.closePath();
+    ctx.arc(hd[0], hd[1], 0.055, 0, TAU);
     ctx.fill();
-    // body, head and tail
-    ctx.beginPath();
-    ctx.ellipse(0, 0.1, 0.085 * sh.body, 0.2, 0, 0, TAU);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(0, -0.13, 0.055, 0, TAU);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(-0.05, 0.25);
-    ctx.lineTo(0.05, 0.25);
-    ctx.lineTo(0.035 * sh.body, sh.tail);
-    ctx.lineTo(-0.035 * sh.body, sh.tail);
-    ctx.closePath();
-    ctx.fill();
+    poly([[0.39, 0.05, 0], [0.47, 0.025, 0], [0.39, 0.0, 0]]);
+    // tail
+    poly([[-0.25, 0.0, -0.03 * sh.body], [-sh.tail, -0.03, -0.11 * sh.body],
+          [-sh.tail, -0.03, 0.11 * sh.body], [-0.25, 0.0, 0.03 * sh.body]]);
+    wing(1, flap, lag, sh);                 // near wing
     ctx.restore();
   }
 
@@ -156,34 +198,32 @@
     var t = flock.t, vis = visibility(t);
     if (vis <= 0) return;
     var hy = HORIZON * H;
-    var base = Math.max(4.5, H * 0.025);   // px per unit at the start (wingspan ~ 2.2 units)
+    var base = Math.max(4.5, H * 0.025);   // px per unit at the start
     // Only the sky is drawn: birds rise out from behind the horizon.
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, W, hy + H * 0.012);
     ctx.clip();
     var sync = smooth(SYNC_START, SYNC_END, t);
-    var ease = 1 - Math.pow(1 - t, 1.7);
+    var e = easeAt(t);
+    var c = centre(flock, e, hy), c2 = centre(flock, Math.min(1, e + 0.002), hy);
+    var pitch = Math.atan2(c.y - c2.y, Math.max(0.001, Math.abs(c2.x - c.x)));
+    pitch = Math.max(-0.6, Math.min(0.9, pitch)) * 0.8;
+    // Perspective: everything shrinks towards the vanishing point --
+    // the birds themselves and the gaps between them, so the flock
+    // visibly converges as it recedes.
+    var persp = 1 - 0.82 * e;
     for (var i = 0; i < flock.birds.length; i++) {
       var b = flock.birds[i];
-      var e = ease;
-      var d = flock.reach * e;
-      // Perspective: everything shrinks towards the vanishing point --
-      // the birds themselves and the gaps between them, so the flock
-      // visibly converges as it recedes.
-      var persp = 1 - 0.82 * e;
-      var x = flock.x0 + Math.cos(flock.heading) * d + b.dx * persp;
-      var y = hy - H * 0.004 + Math.sin(flock.heading) * d + b.dy * persp
-              + Math.sin(flock.clock * 1.3 + b.wob) * 2 * persp * (1 - e);
+      var x = c.x + b.dx * persp;
+      var y = c.y + b.dy * persp + Math.sin(flock.clock * 1.3 + b.wob) * 2 * persp * (1 - e);
       var size = base * b.size * persp;
       // Wing phase: shared beat + personal offset that decays to zero once
       // syncing is allowed to begin (never before SYNC_START).
-      var beat = flock.clock * b.freq * TAU;
-      var offset = (b.off + b.drift * flock.clock) * (1 - sync);
-      var ph = beat + offset;
-      var flap = Math.sin(ph) * 0.85 + 0.1;
-      var lag = Math.sin(ph - 0.9) * 0.8;
-      drawBird(x, y, size, flap, lag, vis, b.shape);
+      var ph = flock.clock * b.freq * TAU + (b.off + b.drift * flock.clock) * (1 - sync);
+      var flap = Math.sin(ph) * 0.75 + 0.1;
+      var lag = Math.sin(ph - 0.9) * 0.7;
+      drawBird(x, y, size, flock.dir, pitch, flap, lag, vis, b.shape);
     }
     ctx.restore();
   }
