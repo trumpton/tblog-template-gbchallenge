@@ -37,6 +37,8 @@
   // shot (roughly 3-7% of flocks, depending on the screen shape)...
   var OUT_OF_SHOT_MARGIN = 0.03;
   var GRACE = 10;                 // ...and such a flock is in frame by this many seconds
+  var EDGE_ZONE = 0.10;           // a launch this close to a side edge must fly inwards
+  var SOLID_END = 0.60;           // a flock is fully solid until this point of its flight
 
   // Four variations of the same breed: arm/hand length, wing depth,
   // how far the hand sweeps back, tail length and body plumpness.
@@ -106,7 +108,14 @@
     // slightly past the left edge (an out-of-shot start).
     var xMax = W;
     var x0 = rnd(-OUT_OF_SHOT_MARGIN * W, xMax);
-    var yaw = (Math.random() < 0.5 ? -1 : 1) * rnd(0, HORIZONTAL_ANGLE2);
+    // Direction: a launch left of EDGE_ZONE must fly left-to-right (positive
+    // angle), one right of 1 - EDGE_ZONE must fly right-to-left (negative);
+    // anywhere in between it is a coin toss.
+    var sideFor = function (x, fallback) {
+      return x < EDGE_ZONE * W ? 1 : x > (1 - EDGE_ZONE) * W ? -1 : fallback;
+    };
+    var side = sideFor(x0, Math.random() < 0.5 ? -1 : 1);
+    var yaw = side * rnd(0, HORIZONTAL_ANGLE2);
     if (x0 < 0) {
       // Out of shot: it must drift right, into frame, within GRACE seconds.
       var reach = sideways * easeAt(Math.min(GRACE / dur, 0.5));
@@ -115,8 +124,15 @@
         yaw = rnd(Math.asin(Math.min(1, need / reach)), HORIZONTAL_ANGLE2);
       } else {
         x0 = rnd(0.02 * W, xMax);           // can't get in frame in time: start in shot
+        yaw = sideFor(x0, side) * Math.abs(yaw);
       }
     }
+    // Every flock must actually cross the screen: at the end of its solid
+    // phase it must still be inside the frame, so the drift is eased off
+    // until it is (a flock never leaves the frame before it has been seen).
+    var xSolid = function (y) { return x0 + sideways * easeAt(SOLID_END) * Math.sin(y); };
+    for (var k = 0; k < 20 && Math.abs(yaw) > 0.005 &&
+         (xSolid(yaw) < 0.03 * W || xSolid(yaw) > 0.97 * W); k++) yaw *= 0.8;
     var birds = [];
     for (var i = 0; i < n; i++) {
       birds.push({

@@ -45,7 +45,7 @@ to 15 degrees (`HORIZONTAL_ANGLE1`) the birds are drawn from behind,
 beyond that side-on (seen 25 degrees off pure side-on). A steep climb
 shortens the flight so it never rises above 90% of the image height.
 A small share of flocks start just out of shot, and are in frame within
-10 s. 2-6 s later the next flock goes (never more than one at a time).
+10 s. A launch in the outer 10% of the width always flies inwards, and every flock stays in frame until it has been seen. 2-6 s later the next flock goes (never more than one at a time).
 Wings start out of sync and are fully in step by a third of the flight. It is skipped when the
 visitor prefers reduced motion.
 
