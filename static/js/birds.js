@@ -3,9 +3,9 @@
    right of straight-away; from-behind bird model up to 15 degrees, side-on beyond), then (after a pause) the next flock.
 
    - One flock in flight at a time; 4-10 birds; launch point random along
-     the horizon; flight lasts 10-30 s; 5-10 s pause between flocks.
-   - Wings are deliberately out of sync at first and only lock together
-     from 40% of the flight onwards.
+     the horizon; flight lasts 10-30 s; 2-6 s pause between flocks.
+   - Wings are deliberately out of sync at first and are fully in step
+     by a third of the flight.
    - Transparency envelope over the flight (t = 0..1): fully see-through
      at the start, solid by t = 0.10, solid until t = 0.60, then a
      gradual fade back to fully see-through at t = 1.
@@ -16,9 +16,9 @@
 
   var HORIZON = 0.60;             // horizon line, as a fraction of header height
   var MIN_FLIGHT = 10, MAX_FLIGHT = 30;   // seconds
-  var MIN_GAP = 5, MAX_GAP = 10;          // seconds between flocks
+  var MIN_GAP = 2, MAX_GAP = 6;            // seconds between flocks
   var MIN_BIRDS = 4, MAX_BIRDS = 10;
-  var SYNC_START = 0.40, SYNC_END = 0.75; // wing sync ramps in over this range
+  var SYNC_START = 0.10, SYNC_END = 1 / 3; // wings drift into step from solid (10%) until fully in sync at a third
   var TAU = Math.PI * 2;
   var DEG = Math.PI / 180;
 
@@ -224,7 +224,7 @@
     var t = flock.t, vis = visibility(t);
     if (vis <= 0) return;
     var hy = HORIZON * H;
-    var base = Math.max(6, H * 0.028);   // px per unit at the start
+    var base = Math.max(6, H * 0.028) * 1.15;   // px per unit at the start
     // Only the sky is drawn: birds rise out from behind the horizon.
     ctx.save();
     ctx.beginPath();
