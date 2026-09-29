@@ -77,10 +77,8 @@
     var birds = [];
     for (var i = 0; i < n; i++) {
       birds.push({
-        dx: rnd(-0.018, 0.018) * W,             // tight group on the horizon
-        dy: rnd(0, 0.012) * H,
-        speed: rnd(0.96, 1.04),                 // personal pace
-        turn: rnd(-0.04, 0.04),                 // personal heading offset
+        dx: rnd(-0.035, 0.035) * W,             // spacing within the flock,
+        dy: rnd(0, 0.03) * H,                   // shrinks with distance
         size: rnd(0.5, 1.5),                    // +/-50%
         shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
         freq: rnd(2.4, 3.5),                    // flaps per second
@@ -168,14 +166,16 @@
     var ease = 1 - Math.pow(1 - t, 1.7);
     for (var i = 0; i < flock.birds.length; i++) {
       var b = flock.birds[i];
-      var e = Math.min(1, ease * b.speed);
-      var ang = flock.heading + b.turn * e;
+      var e = ease;
       var d = flock.reach * e;
-      var x = flock.x0 + b.dx * (1 + e) + Math.cos(ang) * d;
-      var y = hy + b.dy - H * 0.004 + Math.sin(ang) * d
-              + Math.sin(flock.clock * 1.3 + b.wob) * 2 * (1 - e);
-      // Perspective: shrink as they recede.
-      var size = base * b.size * (1 - 0.82 * e);
+      // Perspective: everything shrinks towards the vanishing point --
+      // the birds themselves and the gaps between them, so the flock
+      // visibly converges as it recedes.
+      var persp = 1 - 0.82 * e;
+      var x = flock.x0 + Math.cos(flock.heading) * d + b.dx * persp;
+      var y = hy - H * 0.004 + Math.sin(flock.heading) * d + b.dy * persp
+              + Math.sin(flock.clock * 1.3 + b.wob) * 2 * persp * (1 - e);
+      var size = base * b.size * persp;
       // Wing phase: shared beat + personal offset that decays to zero once
       // syncing is allowed to begin (never before SYNC_START).
       var beat = flock.clock * b.freq * TAU;
