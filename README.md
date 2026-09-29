@@ -30,7 +30,7 @@ repository's `tblog/themes/SPEC.md` for the full TTB bundle format.
 ## Font
 
 The drop cap uses **Cursive Serif Bold** (`static/fonts/CursiveSerif-Bold.ttf`,
-the only font file in the theme). It is hand-declared in
+the only font file in the theme; its `FONTLOG.txt` sits alongside). It is hand-declared in
 `static/css/style.css` as `@font-face { font-family: "CursiveSerif"; ... }`,
 so `theme.json`'s own `ornate_font` values can reference it by that name
 directly.
