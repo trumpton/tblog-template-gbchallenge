@@ -14,7 +14,7 @@
 (function () {
   "use strict";
 
-  var HORIZON = 0.585;            // horizon line, as a fraction of header height
+  var HORIZON = 0.60;             // horizon line, as a fraction of header height
   var MIN_FLIGHT = 10, MAX_FLIGHT = 30;   // seconds
   var MIN_GAP = 5, MAX_GAP = 10;          // seconds between flocks
   var MIN_BIRDS = 4, MAX_BIRDS = 10;
@@ -101,9 +101,9 @@
     var path = SPEED * H * dur;
     var sideways = path * Math.cos(climb);   // ground-plane length of the flight
     // Launch point along the horizon. The woman and dog fill the right-hand
-    // end of the banner (about 0.75 x its height), so launches avoid it; the
+    // end of the banner (about 0.7 x its height), so launches avoid it; the
     // range also runs slightly past the left edge (an out-of-shot start).
-    var xMax = Math.max(0.3 * W, W - 0.75 * H);
+    var xMax = Math.max(0.3 * W, W - 0.7 * H);
     var x0 = rnd(-OUT_OF_SHOT_MARGIN * W, xMax);
     var yaw = (Math.random() < 0.5 ? -1 : 1) * rnd(0, HORIZONTAL_ANGLE2);
     if (x0 < 0) {

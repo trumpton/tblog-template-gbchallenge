@@ -89,7 +89,7 @@ blockquote {
 
    .tb-header-inner is the box whose (inline) min-height sets the banner
    height. Its text sits flush to the bottom-left corner, over the
-   photo's solid dark band (the bottom ~40% of the box, whatever the
+   photo's solid dark band (the bottom ~35% of the box, whatever the
    crop), so it is always readable rather than over the sky. */
 .area-header .tb-header-inner {
   position: relative;

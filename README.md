@@ -14,7 +14,7 @@ look.
 - A full-bleed, right-aligned sunset hero banner (`static/img/banner.jpg`),
   40vh tall by default (set it with the header widget's Height field), with
   the blog's title/tagline pinned to the photo's own dark band across its
-  bottom 40% -- the woman and dog silhouetted at the photo's right edge
+  bottom third -- the woman and dog silhouetted at the photo's right edge
   stay in frame at every screen width, cropping only from the left as
   needed.
 - Sidebar archive, tags and popular-posts widgets; a filterable post
