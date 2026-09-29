@@ -35,6 +35,14 @@ the only font file in the theme; its `FONTLOG.txt` and SIL Open Font License tex
 so `theme.json`'s own `ornate_font` values can reference it by that name
 directly.
 
+## Header animation
+
+`static/js/birds.js` draws a canvas over the header banner: a flock of
+4-10 silhouetted birds lifts off from a random point on the horizon and
+flies away into the distance over 10-30 s, then 5-10 s later the next
+flock goes (never more than one at a time). Wings are out of sync until
+40% of the flight. It is skipped when the visitor prefers reduced motion.
+
 ## Rebuilding the zip
 
 Any change to this theme's files (including a `theme.json` version
