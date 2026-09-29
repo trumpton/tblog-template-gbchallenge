@@ -40,7 +40,7 @@ directly.
 `static/js/birds.js` draws a canvas over the header banner: a flock of
 4-10 silhouetted birds lifts off from a random point on the horizon and
 flies away over 10-30 s, climbing at 15-30 degrees. The left/right angle
-of the flight is anything from 5 (`HORIZONTAL_ANGLE0`) to 50 degrees (`HORIZONTAL_ANGLE2`); up
+of the flight is anything from 5 (`HORIZONTAL_ANGLE0`) to 35 degrees (`HORIZONTAL_ANGLE2`); up
 to 15 degrees (`HORIZONTAL_ANGLE1`) the birds are drawn from behind,
 beyond that side-on (seen 25 degrees off pure side-on). A steep climb
 shortens the flight so it never rises above 90% of the image height.
