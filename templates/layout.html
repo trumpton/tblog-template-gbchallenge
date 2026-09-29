@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title }}</title>
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="stylesheet" href="{{ theme_static('css/style.css') }}">
+  {{ layout_css() }}
+  {{ theme_fonts_css() }}
+  {{ page_style_extra }}
+  {{ area_style_extra }}
+</head>
+<body>
+  <div class="page" style="{{ page_style }}" {{ page_attrs }}>
+    {% if areas.header %}
+      <div class="area area-header" style="{{ area_own_style.header }}" {{ area_attrs.header }}>{{ areas.header }}</div>
+    {% endif %}
+
+    <div class="wrap">
+      <div class="page-columns">
+        {% if areas.sidebar_left %}
+          <aside class="area area-sidebar sidebar-left sidebar-{{ responsive.sidebar_left }}" style="{{ area_own_style.sidebar_left }}" {{ area_attrs.sidebar_left }}>{{ areas.sidebar_left }}</aside>
+        {% endif %}
+
+        <main class="area area-main{% if page_type == 'post' %} tb-hidden{% endif %}" style="{{ area_own_style.main }}" {{ area_attrs.main }}>{{ areas.main }}</main>
+        <div class="area area-main-view{% if page_type != 'post' %} tb-hidden{% endif %}" style="{{ area_own_style.main_view }}" {{ area_attrs.main_view }}>{{ areas.main_view }}</div>
+
+        {% if areas.sidebar_right %}
+          <aside class="area area-sidebar sidebar-right sidebar-{{ responsive.sidebar_right }}" style="{{ area_own_style.sidebar_right }}" {{ area_attrs.sidebar_right }}>{{ areas.sidebar_right }}</aside>
+        {% endif %}
+      </div>
+
+      {% if areas.footer %}<div class="area area-footer" style="{{ area_own_style.footer }}" {{ area_attrs.footer }}>{{ areas.footer }}</div>{% endif %}
+    </div>
+  </div>
+
+  {{ page_onload_script }}
+  {{ page_script }}
+  {{ layout_js() }}
+</body>
+</html>
