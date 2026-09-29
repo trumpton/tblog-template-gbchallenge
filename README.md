@@ -12,7 +12,7 @@ look.
   `Photos`. `Overview` opens with a large hand-lettered drop cap (see
   "Font" below); `Post` renders in two columns.
 - A full-bleed, right-aligned sunset hero banner (`static/img/banner.jpg`),
-  500px tall (capped at 80% of the viewport height on short screens), with
+  420px tall (capped at 80% of the viewport height on short screens), with
   the blog's title/tagline pinned to the photo's own dark band across its
   bottom 40% -- the woman and dog silhouetted at the photo's right edge
   stay in frame at every screen width, cropping only from the left as
@@ -29,12 +29,11 @@ repository's `tblog/themes/SPEC.md` for the full TTB bundle format.
 
 ## Font
 
-The drop cap uses **Kleymissky** by gluk (fontspace.com/kleymissky-font-f19453),
-licensed under the SIL Open Font License 1.1 -- see
-`static/fonts/Kleymissky-OFL-LICENSE.txt`. The font file ships under
-`static/fonts/` and is hand-declared in `static/css/style.css` as
-`@font-face { font-family: "Kleymissky"; ... }`, so `theme.json`'s own
-`ornate_font` values can reference it by that name directly.
+The drop cap uses **Cursive Serif Bold** (`static/fonts/CursiveSerif-Bold.ttf`,
+the only font file in the theme). It is hand-declared in
+`static/css/style.css` as `@font-face { font-family: "CursiveSerif"; ... }`,
+so `theme.json`'s own `ornate_font` values can reference it by that name
+directly.
 
 ## Rebuilding the zip
 

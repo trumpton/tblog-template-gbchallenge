@@ -49,25 +49,25 @@ blockquote {
 /* ---------------------------------------------------------- header --- */
 
 /* Full-bleed, flush with the top of the page -- no card, no border, no
-   inset margin. Height is 500px, but never more than 80% of the
+   inset margin. Height is 420px, but never more than 80% of the
    viewport height, so it can't dominate a short or narrow-but-tall
-   phone screen -- the same `min(500px, 80vh)` is set on the header
+   phone screen -- the same `min(420px, 80vh)` is set on the header
    widget's own config.height (theme.json) as a min-height fallback for
    when JavaScript/CSS min() support is unavailable.
 
    The banner photo (static/img/banner.jpg -- a wide panorama with a
-   woman and dog silhouetted at its right edge, over a dark, noisy band
-   along its bottom ~40%) is anchored `right bottom` and scaled with
-   `cover`: whichever axis the box is proportionally wider/taller than
-   the photo on, only the photo's *top* and *left* are ever cropped away
-   -- its right edge (the woman and dog) and the whole of its bottom
-   dark band always stay in frame, at every screen width. */
+   woman and dog silhouetted at its right edge, over a dark band along
+   its bottom) is scaled to the full height of the box (420px by
+   default) at its natural aspect ratio, and anchored `right bottom`:
+   it is as wide as that scaling requires, and any excess is cropped at
+   the left-hand edge of the screen, so the woman and dog stay in
+   frame at every screen width. */
 .area-header {
   position: relative;
-  height: min(500px, 80vh);
+  height: min(420px, 80vh);
   overflow: hidden;
   background: #000 url("../img/banner.jpg") no-repeat right bottom;
-  background-size: cover;
+  background-size: auto 100%;
 }
 
 /* Neutralize the generic widget-card padding/margin (tb-widget) that
@@ -335,8 +335,9 @@ blockquote {
 /* Hand-authored so this exact family name is what theme.json's own
    ornate_font values reference -- see SPEC.md "Fonts". */
 @font-face {
-  font-family: "Kleymissky";
-  src: url("../fonts/Kleymissky-0xBG.otf") format("opentype");
+  font-family: "CursiveSerif";
+  src: url("../fonts/CursiveSerif-Bold.ttf") format("truetype");
+  font-weight: bold;
   font-display: swap;
 }
 
