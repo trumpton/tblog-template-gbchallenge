@@ -20,6 +20,15 @@
   var SYNC_START = 0.40, SYNC_END = 0.75; // wing sync ramps in over this range
   var TAU = Math.PI * 2;
 
+  // Four variations of the same breed: arm/hand length, wing depth,
+  // how far the hand sweeps back, tail length and body plumpness.
+  var SHAPES = [
+    { L1: 0.48, L2: 0.62, chord: 0.20, sweep: 0.13, tail: 0.42, body: 1.00 }, // typical
+    { L1: 0.42, L2: 0.72, chord: 0.16, sweep: 0.18, tail: 0.36, body: 0.90 }, // long, slim wings
+    { L1: 0.52, L2: 0.50, chord: 0.26, sweep: 0.09, tail: 0.48, body: 1.12 }, // broad, short wings
+    { L1: 0.46, L2: 0.58, chord: 0.22, sweep: 0.22, tail: 0.55, body: 0.95 }  // swept hand, long tail
+  ];
+
   var header = document.querySelector(".area-header");
   if (!header) return;
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -68,15 +77,16 @@
     var birds = [];
     for (var i = 0; i < n; i++) {
       birds.push({
-        dx: rnd(-0.05, 0.05) * W,               // spread along the horizon
-        dy: rnd(0, 0.03) * H,
-        speed: rnd(0.85, 1.15),                 // personal pace
-        turn: rnd(-0.18, 0.18),                 // personal heading offset
-        size: rnd(0.8, 1.15),
-        freq: rnd(3.0, 4.4),                    // flaps per second
-        // Random, well spread wing phase => visibly out of sync at first.
-        off: (i / n) * TAU * rnd(0.8, 1.2) + rnd(0, 1.2),
-        drift: rnd(-1.2, 1.2),                  // slow slip of the phase
+        dx: rnd(-0.018, 0.018) * W,             // tight group on the horizon
+        dy: rnd(0, 0.012) * H,
+        speed: rnd(0.96, 1.04),                 // personal pace
+        turn: rnd(-0.04, 0.04),                 // personal heading offset
+        size: rnd(0.5, 1.5),                    // +/-50%
+        shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+        freq: rnd(2.4, 3.5),                    // flaps per second
+        // Fully random wing phase => visibly out of sync at first.
+        off: rnd(0, TAU * 2),
+        drift: rnd(-2.5, 2.5),                  // slow slip of the phase
         wob: rnd(0, TAU)
       });
     }
@@ -87,20 +97,20 @@
   /* One wing, as seen from behind a bird flying away: shoulder at the
      origin, an arm segment to the wrist and a hand segment to the tip,
      with a trailing edge that has small primary-feather notches. */
-  function wing(side, flap, lag) {
+  function wing(side, flap, lag, sh) {
     var a1 = flap;                  // arm angle (up positive)
     var a2 = lag * 1.0 + 0.1;       // hand lags behind the arm
-    var L1 = 0.48, L2 = 0.62;
+    var L1 = sh.L1, L2 = sh.L2;
     var wx = side * L1 * Math.cos(a1), wy = -L1 * Math.sin(a1);
     var tx = wx + side * L2 * Math.cos(a2), ty = wy - L2 * Math.sin(a2);
-    var chord = 0.2;
+    var chord = sh.chord;
 
     ctx.moveTo(side * 0.05, 0.02);
     // leading edge, bowed slightly forward
     ctx.quadraticCurveTo(side * L1 * 0.5, wy * 0.5 - 0.09, wx, wy - 0.02);
     ctx.quadraticCurveTo((wx + tx) / 2, (wy + ty) / 2 - 0.05, tx, ty);
     // primary feathers: three notched fingers back from the tip
-    var px = tx - side * 0.07, py = ty + 0.13;
+    var px = tx - side * 0.07, py = ty + sh.sweep;
     ctx.lineTo(px + side * 0.05, py - 0.02);
     ctx.lineTo(px - side * 0.03, py + 0.05);
     ctx.lineTo(px - side * 0.11, py + 0.02);
@@ -110,23 +120,23 @@
     ctx.lineTo(side * 0.03, 0.2);
   }
 
-  function drawBird(x, y, size, flap, lag, alpha) {
+  function drawBird(x, y, size, flap, lag, alpha, sh) {
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(size, size);
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "#08070c";
     ctx.beginPath();
-    wing(-1, flap, lag);
+    wing(-1, flap, lag, sh);
     ctx.closePath();
     ctx.fill();
     ctx.beginPath();
-    wing(1, flap, lag);
+    wing(1, flap, lag, sh);
     ctx.closePath();
     ctx.fill();
     // body, head and tail
     ctx.beginPath();
-    ctx.ellipse(0, 0.1, 0.085, 0.2, 0, 0, TAU);
+    ctx.ellipse(0, 0.1, 0.085 * sh.body, 0.2, 0, 0, TAU);
     ctx.fill();
     ctx.beginPath();
     ctx.arc(0, -0.13, 0.055, 0, TAU);
@@ -134,8 +144,8 @@
     ctx.beginPath();
     ctx.moveTo(-0.05, 0.25);
     ctx.lineTo(0.05, 0.25);
-    ctx.lineTo(0.035, 0.42);
-    ctx.lineTo(-0.035, 0.42);
+    ctx.lineTo(0.035 * sh.body, sh.tail);
+    ctx.lineTo(-0.035 * sh.body, sh.tail);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
@@ -148,7 +158,7 @@
     var t = flock.t, vis = visibility(t);
     if (vis <= 0) return;
     var hy = HORIZON * H;
-    var base = Math.max(9, H * 0.05);   // px per unit at the start (wingspan ~ 2.2 units)
+    var base = Math.max(4.5, H * 0.025);   // px per unit at the start (wingspan ~ 2.2 units)
     // Only the sky is drawn: birds rise out from behind the horizon.
     ctx.save();
     ctx.beginPath();
@@ -173,7 +183,7 @@
       var ph = beat + offset;
       var flap = Math.sin(ph) * 0.85 + 0.1;
       var lag = Math.sin(ph - 0.9) * 0.8;
-      drawBird(x, y, size, flap, lag, vis);
+      drawBird(x, y, size, flap, lag, vis, b.shape);
     }
     ctx.restore();
   }
