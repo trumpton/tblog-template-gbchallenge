@@ -1,5 +1,6 @@
 /* Header animation: a flock of distant birds lifts off from the horizon
-   and flies away into the distance, then (after a pause) the next flock.
+   and flies away from the viewer (climbing 15-30 degrees, drifting at most
+   15 degrees left or right), then (after a pause) the next flock.
 
    - One flock in flight at a time; 4-10 birds; launch point random along
      the horizon; flight lasts 10-30 s; 5-10 s pause between flocks.
@@ -19,6 +20,16 @@
   var MIN_BIRDS = 4, MAX_BIRDS = 10;
   var SYNC_START = 0.40, SYNC_END = 0.75; // wing sync ramps in over this range
   var TAU = Math.PI * 2;
+  var DEG = Math.PI / 180;
+
+  // Flight geometry. The birds fly away from the viewer, so the
+  // left-right (yaw) angle is small and the climb angle does the rest.
+  var HORIZONTAL_ANGLE = 15 * DEG;        // max left/right angle away from straight-ahead
+  var MIN_CLIMB = 15 * DEG, MAX_CLIMB = 30 * DEG;   // upward angle range
+  var CEILING = 0.90;             // a flight ends before reaching this fraction of the image height
+  var SPEED = 0.04;               // path length flown per second, as a fraction of header height
+  var OUT_OF_SHOT = 0.05;         // chance a flock starts just out of shot...
+  var GRACE = 10;                 // ...in which case it is in frame by this many seconds
 
   // Four variations of the same breed: arm/hand length, wing depth,
   // how far the hand sweeps back, tail length and body plumpness.
@@ -68,29 +79,32 @@
   var flock = null;      // current flock, or null while waiting
   var waitLeft = rnd(1, 3);   // first flock shortly after load
 
-  // Cruise elevation of the flight path: +/-30 degrees about the horizontal.
-  var MAX_ELEV = 30 * Math.PI / 180;
-  // The birds are seen from 25 degrees off pure side-on, from behind.
-  var VIEW = 25 * Math.PI / 180, VC = Math.cos(VIEW), VS = Math.sin(VIEW);
-  var GRACE = 10;        // seconds: a flock that starts out of shot must be in frame by then
-
   function easeAt(t) { return 1 - Math.pow(1 - t, 1.7); }
 
   function newFlock() {
     var n = Math.floor(rnd(MIN_BIRDS, MAX_BIRDS + 1));
-    var dur = rnd(MIN_FLIGHT, MAX_FLIGHT);
-    var dir = Math.random() < 0.5 ? -1 : 1;          // flying right (+1) or left (-1)
-    var elev = rnd(-MAX_ELEV, MAX_ELEV);
-    var reachX = rnd(0.35, 0.7) * W;
-    var x0, off = 0;
-    if (Math.random() < 0.4) {
-      x0 = rnd(0.1, 0.9) * W;                         // launches in shot
-    } else {
-      off = rnd(0.02, 0.2) * W;                       // launches out of shot, behind its heading
-      x0 = dir > 0 ? -off : W + off;
-      // ...and must be back in frame by GRACE seconds into the flight.
-      var tIn = Math.min(GRACE / dur, 0.5);
-      reachX = Math.max(reachX, (off + 0.08 * W) / easeAt(tIn));
+    var hy = HORIZON * H;
+    var climb = rnd(MIN_CLIMB, MAX_CLIMB);
+    var yaw = rnd(-HORIZONTAL_ANGLE, HORIZONTAL_ANGLE);
+    var outOfShot = Math.random() < OUT_OF_SHOT;
+    // A flock that starts out of shot needs a decent sideways drift to
+    // bring it into frame, so give it a near-maximum left/right angle.
+    if (outOfShot) yaw = (Math.random() < 0.5 ? -1 : 1) * rnd(0.7, 1) * HORIZONTAL_ANGLE;
+    // Angle and time are linked: the flight (path length = SPEED * time)
+    // must end below CEILING of the image height, so a steeper climb
+    // gets a shorter maximum flight time.
+    var maxRise = hy - (1 - CEILING) * H;
+    var maxDur = maxRise / (Math.sin(climb) * SPEED * H);
+    var dur = Math.min(rnd(MIN_FLIGHT, MAX_FLIGHT), maxDur);
+    var path = SPEED * H * dur;
+    var dxTotal = path * Math.cos(climb) * Math.sin(yaw);   // screen drift left/right
+    var x0 = rnd(0.08, 0.92) * W;                            // launch point along the horizon
+    if (outOfShot) {
+      // Start just out of shot, on the side opposite to the drift, but only
+      // as far out as lets the flock be in frame within GRACE seconds.
+      var dxIn = Math.abs(dxTotal) * easeAt(Math.min(GRACE / dur, 0.5));
+      var off = Math.min(rnd(0.01, 0.05) * W, dxIn - 0.03 * W);
+      if (off > 0.005 * W) x0 = dxTotal > 0 ? -off : W + off;
     }
     var birds = [];
     for (var i = 0; i < n; i++) {
@@ -99,6 +113,7 @@
         dy: rnd(0, 0.03) * H,                   // shrinks with distance
         size: rnd(0.5, 1.5),                    // +/-50%
         shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+        pitchJit: rnd(-3, 3) * DEG,
         freq: rnd(2.4, 3.5),                    // flaps per second
         // Fully random wing phase => visibly out of sync at first.
         off: rnd(0, TAU * 2),
@@ -106,23 +121,26 @@
         wob: rnd(0, TAU)
       });
     }
-    return { t: 0, dur: dur, x0: x0, dir: dir, elev: elev, reachX: reachX,
-             climb: rnd(0.10, 0.22) * H, birds: birds, clock: 0 };
+    return { t: 0, dur: dur, x0: x0, yaw: yaw, climb: climb, path: path,
+             birds: birds, clock: 0 };
   }
 
   // Centre of the flock at eased progress e (0..1), before per-bird spacing.
   function centre(f, e, hy) {
-    var u = Math.min(1, e / 0.25);                    // initial climb-out
-    var x = f.x0 + f.dir * f.reachX * e;
-    var y = hy - f.climb * (1 - (1 - u) * (1 - u)) - Math.tan(f.elev) * f.reachX * e;
-    return { x: x, y: Math.min(y, hy - H * 0.03) };   // stay above the hill
+    return { x: f.x0 + f.path * e * Math.cos(f.climb) * Math.sin(f.yaw),
+             y: hy - f.path * e * Math.sin(f.climb) };
   }
 
-  /* 3D-lite bird model. Bird space: x forward, y up, z out to the "near"
-     wing (-z is the far wing). Viewed 25 degrees off side-on, from
-     behind, so the wings foreshorten and the tail fans slightly. */
+  /* 3D-lite bird model. Bird space: x forward, y up, z out to the bird's
+     right wing. The bird is seen from behind and below: it flies away at
+     `yaw` (left/right of straight away from the viewer) and climbs at
+     `pitch`, so the tail is nearest, the nose is raised, and the wings
+     spread almost square-on. */
+  var cyaw = 0, syaw = 0, cpit = 1, spit = 0;
   function proj(x, y, z) {
-    return [x * VC + z * VS, -y];
+    var h = x * cpit - y * spit;             // horizontal forward
+    var v = x * spit + y * cpit;             // vertical
+    return [h * syaw + z * cyaw, -v];
   }
   function poly(pts, smooth) {
     var q = pts.map(function (p) { return proj(p[0], p[1], p[2]); });
@@ -143,6 +161,12 @@
     ctx.closePath();
     ctx.fill();
   }
+  function disc(x, y, z, r) {
+    var q = proj(x, y, z);
+    ctx.beginPath();
+    ctx.arc(q[0], q[1], r, 0, TAU);
+    ctx.fill();
+  }
   function wing(side, flap, lag, sh) {
     var a1 = flap, a2 = lag * 1.0 + 0.1;
     var wx = 0.0, wy = sh.L1 * Math.sin(a1), wz = side * sh.L1 * Math.cos(a1);
@@ -161,33 +185,25 @@
       [-0.10, 0, 0]
     ], true);
   }
-  function drawBird(x, y, size, dir, pitch, flap, lag, alpha, sh) {
+  function drawBird(x, y, size, yaw, pitch, flap, lag, alpha, sh) {
+    cyaw = Math.cos(yaw); syaw = Math.sin(yaw);
+    cpit = Math.cos(pitch); spit = Math.sin(pitch);
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(size * dir, size);            // mirror so it faces the way it flies
-    ctx.rotate(-pitch * dir * dir);         // nose up when climbing
+    ctx.scale(size, size);
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "#08070c";
-    wing(-1, flap, lag, sh);                // far wing
-    // body
-    ctx.beginPath();
-    for (var k = 0; k < 20; k++) {
-      var th = k / 20 * TAU;
-      var q = proj(0.03 + 0.32 * Math.cos(th), 0.085 * sh.body * Math.sin(th), 0);
-      if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]);
+    wing(-1, flap, lag, sh);
+    wing(1, flap, lag, sh);
+    // body: a chain of discs along the axis, tapering at both ends
+    for (var k = -4; k <= 4; k++) {
+      var u = k / 4.5;
+      disc(0.03 + 0.32 * u, 0, 0, 0.085 * sh.body * Math.sqrt(1 - u * u) + 0.01);
     }
-    ctx.closePath();
-    ctx.fill();
-    // head and beak
-    var hd = proj(0.36, 0.03, 0);
-    ctx.beginPath();
-    ctx.arc(hd[0], hd[1], 0.055, 0, TAU);
-    ctx.fill();
-    poly([[0.39, 0.05, 0], [0.47, 0.025, 0], [0.39, 0.0, 0]]);
-    // tail
-    poly([[-0.25, 0.0, -0.03 * sh.body], [-sh.tail, -0.03, -0.11 * sh.body],
-          [-sh.tail, -0.03, 0.11 * sh.body], [-0.25, 0.0, 0.03 * sh.body]]);
-    wing(1, flap, lag, sh);                 // near wing
+    disc(0.36, 0.03, 0, 0.055);             // head
+    // tail fan (nearest the viewer)
+    poly([[-0.25, 0.0, -0.03 * sh.body], [-sh.tail, -0.02, -0.11 * sh.body],
+          [-sh.tail, -0.02, 0.11 * sh.body], [-0.25, 0.0, 0.03 * sh.body]]);
     ctx.restore();
   }
 
@@ -206,9 +222,7 @@
     ctx.clip();
     var sync = smooth(SYNC_START, SYNC_END, t);
     var e = easeAt(t);
-    var c = centre(flock, e, hy), c2 = centre(flock, Math.min(1, e + 0.002), hy);
-    var pitch = Math.atan2(c.y - c2.y, Math.max(0.001, Math.abs(c2.x - c.x)));
-    pitch = Math.max(-0.6, Math.min(0.9, pitch)) * 0.8;
+    var c = centre(flock, e, hy);
     // Perspective: everything shrinks towards the vanishing point --
     // the birds themselves and the gaps between them, so the flock
     // visibly converges as it recedes.
@@ -223,7 +237,7 @@
       var ph = flock.clock * b.freq * TAU + (b.off + b.drift * flock.clock) * (1 - sync);
       var flap = Math.sin(ph) * 0.75 + 0.1;
       var lag = Math.sin(ph - 0.9) * 0.7;
-      drawBird(x, y, size, flock.dir, pitch, flap, lag, vis, b.shape);
+      drawBird(x, y, size, flock.yaw, flock.climb + b.pitchJit, flap, lag, vis, b.shape);
     }
     ctx.restore();
   }
