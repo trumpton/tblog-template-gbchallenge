@@ -100,10 +100,11 @@
     var dur = Math.min(rnd(MIN_FLIGHT, MAX_FLIGHT), maxDur);
     var path = SPEED * H * dur;
     var sideways = path * Math.cos(climb);   // ground-plane length of the flight
-    // Launch point along the horizon. The woman and dog fill the right-hand
-    // end of the banner (about 0.7 x its height), so launches avoid it; the
-    // range also runs slightly past the left edge (an out-of-shot start).
-    var xMax = Math.max(0.3 * W, W - 0.7 * H);
+    // Launch point anywhere along the horizon -- including over the woman
+    // and dog: the birds and their silhouettes are both black, so a bird in
+    // front of them just reads as flying behind. The range also runs
+    // slightly past the left edge (an out-of-shot start).
+    var xMax = W;
     var x0 = rnd(-OUT_OF_SHOT_MARGIN * W, xMax);
     var yaw = (Math.random() < 0.5 ? -1 : 1) * rnd(0, HORIZONTAL_ANGLE2);
     if (x0 < 0) {
